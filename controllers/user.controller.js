@@ -2,7 +2,6 @@ const db = require('../database');
 
 exports.login = (req, res, next) => {
   const { username = '', password = '' } = req.body;
-  console.log(req.body)
   db.UserModel.getUser({ username, password })
     .then(result => res.status(200).send(result))
     .catch(error => {
