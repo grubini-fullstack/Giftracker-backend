@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
     ref: 'User'
   }]
 });
-userschema.index({ username: 1 });
+userSchema.index({ username: 1 });
 const UserModel = new mongoose.model('User', userSchema);
 
 const createUser = (user) => new UserModel(user).save();
