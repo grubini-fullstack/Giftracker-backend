@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   firstname: { type: String, required: true },
   lastname: { type: String, required: true },
-  email: { type: String },
+  email: { type: String, unique: true, dropDups: true },
   phone: { type: String },
+  //TODO:  look at the payments
   payments: { type: Object },
   notifications: { type: Boolean },
   username: { type: String, required: true, unique: true, dropDups: true },

@@ -31,9 +31,42 @@ exports userExists = (req, res, next) => {
 };
 
 exports.createUser = (req, res, next) => {
-  const { } = req.body;
-  db.UserModel.createUser()
-    .then()
+  const {
+    firstname = '',
+    lastname = '',
+    email = '',
+    phone = '',
+    payments = {},
+    notifications = false,
+    username = '',
+    password = '',
+    birthday = '',
+    watchlist = [],
+    wishlist = [],
+    socialwishlist = [],
+    friends = []
+  } = req.body;
+  db.UserModel.createUser({
+    firstname,
+    lastname,
+    email,
+    phone,
+    payments,
+    notifications,
+    username,
+    password,
+    birthday,
+    watchlist,
+    wishlist,
+    socialwishlist,
+    friends
+  })
+    .then(result => {
+      if (!result) {
+        throw result;
+      }
+      res.status(200).send(result);
+    })
     .catch(error => {
       console.log('error creating the user, ', error);
       res.status(404).send({ message: 'there was an error with the user\'s creation, please try again' });
@@ -41,9 +74,42 @@ exports.createUser = (req, res, next) => {
 };
 
 exports.updateUser = (req, res, next) => {
-  const { } = req.body;
-  db.UserModel.updateUser()
-    .then()
+  const {
+    firstname = '',
+    lastname = '',
+    email = '',
+    phone = '',
+    payments = {},
+    notifications = false,
+    username = '',
+    password = '',
+    birthday = '',
+    watchlist = [],
+    wishlist = [],
+    socialwishlist = [],
+    friends = []
+  } = req.body;
+  db.UserModel.updateUser({
+    firstname,
+    lastname,
+    email,
+    phone,
+    payments,
+    notifications,
+    username,
+    password,
+    birthday,
+    watchlist,
+    wishlist,
+    socialwishlist,
+    friends
+  })
+    .then(result => {
+      if (!result) {
+        throw result;
+      }
+      res.status(200).send(result);
+    })
     .catch(error => {
       console.log('error updating the user, ', error);
       res.status(404).send({ message: 'there was an error with updating the user, please try again' });
@@ -51,9 +117,14 @@ exports.updateUser = (req, res, next) => {
 };
 
 exports.deleteUser = (req, res, next) => {
-  const { } = req.body;
-  db.UserModel.deletUser()
-    .then()
+  const { username, password } = req.body;
+  db.UserModel.deletUser({ username, password })
+    .then(result => {
+      if (!result) {
+        throw result;
+      }
+      res.status(200).send(result);
+    })
     .catch(error => {
       console.log('error deliting the user, ', error);
       res.status(404).send({ message: 'there was an error with deleting this user, please try again' });
