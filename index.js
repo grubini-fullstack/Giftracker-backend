@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/search', routes.productRoutes);
-app.use('/member', routes.memberRoutes);
+app.use('/user', routes.userRoutes);
 app.use('/', routes.webappRoutes);
 
 app.listen(process.env.PORT, () => {
