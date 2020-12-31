@@ -1,141 +1,164 @@
+const bcrypt = require('bcrypt');
 const db = require('../database');
 
-exports.login = (req, res, next) => {
-  const { username = '', password = '' } = req.body;
-  db.UserModel.getUser({ username, password })
-    .then(result => {
-      let response = result;
-      if (!result) {
-        response = { error: 'User does not exists with those credentials, please try again' };
-      }
-      res.status(200).send(response);
-    })
-    .catch(error => {
-      console.log('There was an error login in the user, ', error);
-      res.status(404).send({ message: 'there was an error with the login in of the user' });
-    });
+
+
+const _formattingErrors = (error) => {
+  let errors;
+  if (!error) {
+    errors = 'Unknown error';
+  } else if (error.errors) {
+    errors = Object.keys(error.errors);
+  } else {
+    switch (error.code) {
+      case 11000:
+        errors = 'Username already exists';
+        break;
+      case 1000:
+        errors = 'User does not exist';
+        break;
+      default:
+        errors = 'User handling had an error';
+    }
+  }
+  return errors;
+};
+const _retrieveUser = async (username) => {
+  const user = await db.UserModel.getUser(username);
+  if (!user) {
+    return false;
+  }
+  return user;
 };
 
-exports.userExists = (req, res, next) => {
-  const { username = '' } = req.query;
-  db.UserModel.userExists(username)
-    .then(result => res.status(200).send({ active: result }))
-    .catch(error => {
-      console.log('error verifying if username exists, ', error);
-      res.status(404).send({ message: 'there was an error with the verification, please try again' });
-    });
+exports.login = async (req, res, next) => {
+  let data = { error: 'User does not exists with those credentials, please try again' };
+  let status = 0;
+  try {
+    const { username = '', password = '' } = req.body;
+    const user = await _retrieveUser(username);
+    if (!user) {
+      throw user;
+    }
+    if (await bcrypt.compare(password, user.password)) {
+      status = 1;
+      const newSession = await db.SessionModel.create(user.__id, user.username);
+      data = {
+        firstname: user.firstname,
+        lastname: user.lastname,
+        session: newSession
+      };
+    }
+    res.status(200).send({ status, data });
+  } catch (err) {
+    console.log('There was an error login in the user, ', err);
+    data.error = _formattingErrors(err);
+    res.status(404).send({ status, data });
+  }
 };
 
-exports.createUser = (req, res, next) => {
-  const {
-    firstname = '',
-    lastname = '',
-    email = '',
-    phone = '',
-    payments = {},
-    notifications = false,
-    username = '',
-    password = '',
-    birthday = '',
-    watchlist = [],
-    wishlist = [],
-    socialwishlist = [],
-    friends = []
-  } = req.body;
-  db.UserModel.createUser({
-    firstname,
-    lastname,
-    email,
-    phone,
-    payments,
-    notifications,
-    username,
-    password,
-    birthday,
-    watchlist,
-    wishlist,
-    socialwishlist,
-    friends
-  })
-    .then(result => {
-      if (!result) {
-        throw result;
-      }
-      res.status(200).send(result);
-    })
-    .catch(error => {
-      let errors;
-      console.log('error creating the user, ', error);
-      if (error.errors) {
-        errors = Object.keys(error.errors);
-      } else {
-        switch (error.code) {
-          case 11000:
-            errors = 'Username already exists';
-            break;
-          default:
-            errors = 'User creation had an error';
-        }
-
-      }
-      res.status(404).send({ errors });
-    });
+exports.userExists = async (req, res, next) => {
+  let data = { error: true };
+  try {
+    const { username = '' } = req.query;
+    const isActive = await db.UserModel.userExists(username);
+    res.status(200).send({ status: isActive ? 0 : 1, data: isActive });
+  } catch (err) {
+    console.log('error verifying if username exists, ', err);
+    data.error = _formattingErrors(err);
+    res.status(404).send({ status, data });
+  }
 };
 
-exports.updateUser = (req, res, next) => {
-  const {
-    firstname = '',
-    lastname = '',
-    email = '',
-    phone = '',
-    payments = {},
-    notifications = false,
-    username = '',
-    password = '',
-    birthday = '',
-    watchlist = [],
-    wishlist = [],
-    socialwishlist = [],
-    friends = []
-  } = req.body;
-  db.UserModel.updateUser({
-    firstname,
-    lastname,
-    email,
-    phone,
-    payments,
-    notifications,
-    username,
-    password,
-    birthday,
-    watchlist,
-    wishlist,
-    socialwishlist,
-    friends
-  })
-    .then(result => {
-      if (!result) {
-        throw result;
-      }
-      res.status(200).send(result);
-    })
-    .catch(error => {
-      console.log('error updating the user, ', error);
-      res.status(404).send({ message: 'there was an error with updating the user, please try again' });
+exports.createUser = async (req, res, next) => {
+  let data = { error: 'User was not able to be created, please try again' };
+  let status = 0;
+  try {
+    const {
+      firstname = '',
+      lastname = '',
+      email = '',
+      phone = '',
+      payments = {},
+      notifications = false,
+      username = '',
+      password = '',
+      birthday = '',
+      watchlist = [],
+      wishlist = [],
+      socialwishlist = [],
+      friends = []
+    } = req.body;
+    const encryptedPassword = await bcrypt.hash(password, 10);
+    const newUser = await db.UserModel.createUser({
+      firstname, lastname, email, phone, payments, notifications, username,
+      password: encryptedPassword, birthday, watchlist, wishlist, socialwishlist, friends
     });
+    if (!newUser) {
+      throw newUser;
+    }
+    status = 1;
+    data = newUser;
+    res.status(200).send({ status, data });
+  } catch (err) {
+    console.log('There was an error creating the user, ', err);
+    data.error = _formattingErrors(err);
+    res.status(404).send({ status, data });
+  }
 };
 
-exports.deleteUser = (req, res, next) => {
-  const { username, password } = req.body;
-  db.UserModel.deleteUser({ username, password })
-    .then(result => {
-      if (!result) {
-        throw result;
-      }
-      res.status(200).send(result);
-    })
-    .catch(error => {
-      console.log('error deliting the user, ', error);
-      res.status(404).send({ message: 'there was an error with deleting this user, please try again' });
-    });
+exports.updateUser = async (req, res, next) => {
+  let data = { error: 'User was not able to be updated, please try again' };
+  let status = 0;
+  try {
+    const {
+      firstname = '',
+      lastname = '',
+      email = '',
+      phone = '',
+      payments = {},
+      notifications = false,
+      username = '',
+      birthday = '',
+      watchlist = [],
+      wishlist = [],
+      socialwishlist = [],
+      friends = []
+    } = req.body;
+    const user = await _retrieveUser(username);
+    const userUpdated = {
+      ...user, firstname, lastname, email, phone, payments, notifications,
+      birthday, watchlist, wishlist, socialwishlist, friends
+    };
+    const updatedUser = await db.UserModel.updateUser(userUpdated);
+    if (!updatedUser) {
+      throw updatedUser;
+    }
+    status = 1;
+    res.status(200).send({ status, data: updatedUser });
+  } catch (err) {
+    console.log('error updating the user, ', err);
+    data.error = _formattingErrors(err);
+    res.status(404).send({ status, data });
+  }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  let data = { error: 'User was not able to be deleted, please try again' };
+  let status = 0;
+  try {
+    const { username, password } = req.body;
+    const userToDelete = await _retrieveUser(username);
+    if (!userToDelete) {
+
+      throw { code: 1000 };
+    }
+    const userDeleted = await db.UserModel.deleteUser(username);
+    status = 1;
+    res.status(200).send({ status, data: userDeleted });
+  } catch (err) {
+    console.log('error deleting the user, ', err);
+    data.error = _formattingErrors(err);
+    res.status(404).send({ status, data });
+  }
 };
