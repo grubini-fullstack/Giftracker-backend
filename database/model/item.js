@@ -4,8 +4,8 @@ const itemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   store: { type: String, required: true },
   price: { type: Number, required: true },
-  availableinstore: { type: String, required: true },
-  availableonline: { type: String, required: true },
+  availableinstore: { type: Boolean, required: true },
+  availableonline: { type: Boolean, required: true },
   date_created: { type: Date, required: true },
   itemlink: { type: String, required: true },
   detail: { type: String, required: true }

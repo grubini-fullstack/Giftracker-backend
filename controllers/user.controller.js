@@ -3,7 +3,13 @@ const db = require('../database');
 exports.login = (req, res, next) => {
   const { username = '', password = '' } = req.body;
   db.UserModel.getUser({ username, password })
-    .then(result => res.status(200).send(result))
+    .then(result => {
+      let response = result;
+      if (!result) {
+        response = { error: 'User does not exists with those credentials, please try again' };
+      }
+      res.status(200).send(response);
+    })
     .catch(error => {
       console.log('There was an error login in the user, ', error);
       res.status(404).send({ message: 'there was an error with the login in of the user' });
@@ -58,8 +64,21 @@ exports.createUser = (req, res, next) => {
       res.status(200).send(result);
     })
     .catch(error => {
+      let errors;
       console.log('error creating the user, ', error);
-      res.status(404).send({ message: 'there was an error with the user\'s creation, please try again' });
+      if (error.errors) {
+        errors = Object.keys(error.errors);
+      } else {
+        switch (error.code) {
+          case 11000:
+            errors = 'Username already exists';
+            break;
+          default:
+            errors = 'User creation had an error';
+        }
+
+      }
+      res.status(404).send({ errors });
     });
 };
 
