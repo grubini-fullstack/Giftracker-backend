@@ -5,6 +5,7 @@ const db = require('../database');
 
 const _formattingErrors = (error) => {
   let errors;
+  console.log('t ', error)
   if (!error) {
     errors = 'Unknown error';
   } else if (error.errors) {
@@ -16,6 +17,9 @@ const _formattingErrors = (error) => {
         break;
       case 1000:
         errors = 'User does not exist';
+        break;
+      case 2000:
+        errors = 'User does not exists with those credentials, please try again';
         break;
       default:
         errors = 'User handling had an error';
@@ -32,13 +36,14 @@ const _retrieveUser = async (username) => {
 };
 
 exports.login = async (req, res, next) => {
-  let data = { error: 'User does not exists with those credentials, please try again' };
+  let data;
   let status = 0;
   try {
     const { username = '', password = '' } = req.body;
+    console.log(username, password)
     const user = await _retrieveUser(username);
     if (!user) {
-      throw user;
+      throw { code: 2000 };
     }
     if (await bcrypt.compare(password, user.password)) {
       status = 1;
@@ -51,8 +56,7 @@ exports.login = async (req, res, next) => {
     }
     res.status(200).send({ status, data });
   } catch (err) {
-    console.log('There was an error login in the user, ', err);
-    data.error = _formattingErrors(err);
+    data = _formattingErrors(err);
     res.status(404).send({ status, data });
   }
 };
