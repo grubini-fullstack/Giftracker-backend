@@ -10,7 +10,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/search', routes.productRoutes);
+app.use('/product', routes.productRoutes);
 app.use('/user', routes.userRoutes);
 app.use('/', routes.webappRoutes);
 

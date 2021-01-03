@@ -40,19 +40,15 @@ exports.login = async (req, res, next) => {
   let status = 0;
   try {
     const { username = '', password = '' } = req.body;
-    console.log(username, password)
     const user = await _retrieveUser(username);
     if (!user) {
       throw { code: 2000 };
     }
     if (await bcrypt.compare(password, user.password)) {
       status = 1;
-      const newSession = await db.SessionModel.create(user.__id, user.username);
-      data = {
-        firstname: user.firstname,
-        lastname: user.lastname,
-        session: newSession
-      };
+      console.log('theuser, ', user)
+      const newSession = await db.SessionModel.create(user._id, user.username);
+      data = { user, session: newSession };
     }
     res.status(200).send({ status, data });
   } catch (err) {

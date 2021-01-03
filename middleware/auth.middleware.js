@@ -1,4 +1,5 @@
 const db = require('../database');
+const jwt = require('jsonwebtoken');
 
 const verifySession = async (req, res, next) => {
   try {
@@ -8,6 +9,7 @@ const verifySession = async (req, res, next) => {
       if (!isValid) {
         throw 'inactive';
       }
+      session.decoded = jwt.decode(session._token, { complete: true });
       next();
     } else {
       throw 'inactive';

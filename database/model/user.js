@@ -40,8 +40,14 @@ const UserModel = new mongoose.model('User', userSchema);
 
 const createUser = (user) => new UserModel(user).save();
 const userExists = (username) => UserModel.exists({ username });
-const getUser = (username) => UserModel.findOne({ username }, { __v: 0 }).lean();
+const getUser = (username) => UserModel.findOne({ username }, { __v: 0 })
+  .populate({ path: "wishlist" })
+  .populate({ path: "watchlist" });
 const updateUser = (user) => UserModel.findOneAndUpdate({ username: user.username }, user);
+const addToWatchList = (itemId, userId) => UserModel.updateOne({ _id: userId }, { $addToSet: { watchlist: itemId } });
+const deleteFromWatchList = (userId, itemId) => UserModel.updateOne({ _id: userId }, { $pull: { watchlist: itemId } }, { multi: true });
+const addToWishList = (itemId, userId) => UserModel.updateOne({ _id: userId }, { $addToSet: { wishlist: itemId } });
+const deleteFromWishList = (userId, itemId) => UserModel.updateOne({ _id: userId }, { $pull: { wishlist: itemId } }, { multi: true });
 const deleteUser = (username) => UserModel.deleteOne({ username });
 
 module.exports.createUser = createUser;
@@ -49,3 +55,7 @@ module.exports.getUser = getUser;
 module.exports.userExists = userExists;
 module.exports.deleteUser = deleteUser;
 module.exports.updateUser = updateUser;
+module.exports.addToWishList = addToWishList;
+module.exports.deleteFromWatchList = deleteFromWatchList;
+module.exports.addToWatchList = addToWatchList;
+module.exports.deleteFromWishList = deleteFromWishList;

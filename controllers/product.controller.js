@@ -1,4 +1,6 @@
 const axios = require('axios');
+const db = require('../database');
+
 
 const _bestBuyProductDetail = (product) => {
   return axios.get(`${process.env.BEST_BUY_BASE_URL}((search=${product}))?apiKey=${process.env.BEST_BUY_KEY}&sort=color.asc&show=name,regularPrice,salePrice,addToCartUrl,color,condition,description,details.name,freeShipping,features.feature,onlineAvailability,includedItemList.includedItem,modelNumber,image&format=json`)
@@ -35,4 +37,22 @@ exports.searchStore = (req, res, next) => {
       console.log('unknown store!!!');
       break;
   }
+};
+exports.addProduct = async (req, res, next) => {
+  console.log('i gt heree')
+  const { category, item, session } = req.body;
+  console.log('the sess ', session.decoded.payload.id)
+  const update = await db.ItemModel.addOrUpdateItem(item);
+  if (update.ok) {
+    const fetchedItem = await db.ItemModel.getItemId(item._modelNumber);
+    console.log(fetchedItem._id, ' ', session._id)
+    const user = await db.UserModel.addToWishList(fetchedItem._id, session.decoded.payload.id);
+  }
+  // console.log('the id is ,', update.ok)
+};
+exports.deleteProduct = async (req, res, next) => {
+  const { category, itemId } = req.body;
+  console.log('req cat, ', category, ' id ', itemId);
+  const deleted = db.UserModel.deleteFromWishList(session.decoded.payload.id, itemId);
+  console.log('deletetd ', deleted);
 };

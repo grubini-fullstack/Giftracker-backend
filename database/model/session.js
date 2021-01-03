@@ -20,22 +20,18 @@ const create = (id, username) => {
   };
   return new SessionModel(newSession).save();
 };
-const _get = (token) => {
-  SessionModel.findOne({ token }, { __v: 0 })
-    .then(res => console.log(res))
-    .catch(e => console.log(e))
-};
-const _delete = (token) => {
-  SessionModel.deleteOne({ token })
-    .then(res => console.log(res))
-    .catch(e => console.log(e))
-}
-const isValid = (session) => {
-  const dateInFuture = moment(session.creation_date).add(session.duration_hrs, 'hours');
+const _get = (token) => SessionModel.findOne({ token }, { __v: 0 });
+const _delete = (token) => SessionModel.deleteOne({ token });
+
+const isValid = async (session) => {
+  const storedSession = await _get(session._token);
+  if (!storedSession) return false;
+
+  const dateInFuture = moment(storedSession.creation_date).add(storedSession.duration_hrs, 'hours');
   const difference = dateInFuture.diff(moment(), 'minutes');
   const isExpired = difference <= 0;
   if (isExpired) {
-    _delete(session.token);
+    _delete(storedSession.token);
     return false;
   }
   return true;
