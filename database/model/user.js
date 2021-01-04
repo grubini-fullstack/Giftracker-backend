@@ -47,6 +47,7 @@ const updateUser = (user) => UserModel.findOneAndUpdate({ username: user.usernam
 const addToWatchList = (itemId, userId) => UserModel.updateOne({ _id: userId }, { $addToSet: { watchlist: itemId } });
 const deleteFromWatchList = (userId, itemId) => UserModel.updateOne({ _id: userId }, { $pull: { watchlist: itemId } }, { multi: true });
 const addToWishList = (itemId, userId) => UserModel.updateOne({ _id: userId }, { $addToSet: { wishlist: itemId } });
+const getWishList = (userId) => UserModel.findOne({ _id: userId }, { wishlist: 1 }).populate({ path: "wishlist" });
 const deleteFromWishList = (userId, itemId) => UserModel.updateOne({ _id: userId }, { $pull: { wishlist: itemId } }, { multi: true });
 const deleteUser = (username) => UserModel.deleteOne({ username });
 
@@ -56,6 +57,7 @@ module.exports.userExists = userExists;
 module.exports.deleteUser = deleteUser;
 module.exports.updateUser = updateUser;
 module.exports.addToWishList = addToWishList;
+module.exports.getWishList = getWishList;
 module.exports.deleteFromWatchList = deleteFromWatchList;
 module.exports.addToWatchList = addToWatchList;
 module.exports.deleteFromWishList = deleteFromWishList;

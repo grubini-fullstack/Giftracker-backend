@@ -5,7 +5,7 @@ const verifySession = async (req, res, next) => {
   try {
     const { session } = req.body;
     if (session) {
-      const isValid = await db.SessionModel.isValid(session);
+      const isValid = await db.SessionModel.isValid(session._token);
       if (!isValid) {
         throw 'inactive';
       }

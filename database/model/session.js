@@ -23,8 +23,8 @@ const create = (id, username) => {
 const _get = (token) => SessionModel.findOne({ token }, { __v: 0 });
 const _delete = (token) => SessionModel.deleteOne({ token });
 
-const isValid = async (session) => {
-  const storedSession = await _get(session._token);
+const isValid = async (token) => {
+  const storedSession = await _get(token);
   if (!storedSession) return false;
 
   const dateInFuture = moment(storedSession.creation_date).add(storedSession.duration_hrs, 'hours');

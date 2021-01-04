@@ -7,7 +7,9 @@ router.get('/search', ProductController.searchProduct);
 router.get('/establishment', ProductController.searchStore);
 
 router.use(AuthMiddleware);
+router.post('/wishlist', ProductController.getWishList)
 router.post('/addorupdate', ProductController.addProduct);
 router.post('deleteproduct', ProductController.deleteProduct);
+
 
 module.exports = router;
