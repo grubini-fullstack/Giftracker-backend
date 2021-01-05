@@ -5,7 +5,6 @@ const db = require('../database');
 
 const _formattingErrors = (error) => {
   let errors;
-  console.log('t ', error)
   if (!error) {
     errors = 'Unknown error';
   } else if (error.errors) {
@@ -46,7 +45,6 @@ exports.login = async (req, res, next) => {
     }
     if (await bcrypt.compare(password, user.password)) {
       status = 1;
-      console.log('theuser, ', user)
       const newSession = await db.SessionModel.create(user._id, user.username);
       data = { user, session: newSession };
     }

@@ -48,20 +48,16 @@ exports.addProduct = async (req, res, next) => {
     const update = await db.ItemModel.addOrUpdateItem(item);
     if (update.ok) {
       const fetchedItem = await db.ItemModel.getItemId(item._modelNumber);
-      console.log(fetchedItem._id, ' ', session._id)
       const user = await db.UserModel.addToWishList(fetchedItem._id, session.decoded.payload.id);
     }
   } catch (err) {
     res.status(404).end();
   }
-  // console.log('the id is ,', update.ok)
 };
 exports.deleteProduct = async (req, res, next) => {
   try {
     const { category, itemId } = req.body;
-    console.log('req cat, ', category, ' id ', itemId);
     const deleted = db.UserModel.deleteFromWishList(session.decoded.payload.id, itemId);
-    console.log('deletetd ', deleted);
   } catch (err) {
     res.status(404).end();
   }
